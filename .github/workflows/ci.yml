@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore .\RobocopySafeGUI.sln
+
+      - name: Build
+        run: dotnet build .\RobocopySafeGUI.sln -c Release --no-restore
+
+      - name: Integration harness
+        run: dotnet run --project .\tests\RobocopySafe.Harness\RobocopySafe.Harness.csproj -c Release --no-build
+
+      - name: Formatting
+        run: dotnet format .\RobocopySafeGUI.sln --verify-no-changes --no-restore
+
+      - name: Vulnerable package audit
+        run: dotnet list .\RobocopySafeGUI.sln package --vulnerable --include-transitive

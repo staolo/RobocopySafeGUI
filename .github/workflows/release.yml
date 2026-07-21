@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          dotnet restore .\RobocopySafeGUI.sln
+          dotnet build .\RobocopySafeGUI.sln -c Release --no-restore
+          dotnet run --project .\tests\RobocopySafe.Harness\RobocopySafe.Harness.csproj -c Release --no-build
+
+      - name: Build release archives
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          & .\tools\build-release.ps1 -Version $version
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $version = $tag.TrimStart('v')
+          $releaseRoot = Join-Path $PWD "artifacts\release\v$version"
+          $assets = @(Get-ChildItem -LiteralPath $releaseRoot -File | ForEach-Object FullName)
+          if ($assets.Count -lt 3) {
+            throw "Expected two ZIP files and SHA256SUMS.txt. Found $($assets.Count) assets."
+          }
+
+          $arguments = @(
+            'release', 'create', $tag,
+            '--title', "Robocopy Safe Copy $tag",
+            '--generate-notes',
+            '--verify-tag'
+          ) + $assets
+          & gh @arguments
+          if ($LASTEXITCODE -ne 0) {
+            throw "gh release create failed with exit code $LASTEXITCODE."
+          }

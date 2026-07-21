@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>RobocopySafeGUI</AssemblyName>
+    <RootNamespace>RobocopySafe.Gui</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\RobocopySafeGUI.ico</ApplicationIcon>
+    <AssemblyTitle>Robocopy Safe Copy</AssemblyTitle>
+    <Product>Robocopy Safe Copy</Product>
+    <Description>A Windows Robocopy GUI with conservative hidden-item, system-item, and link handling.</Description>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RobocopySafe.Core\RobocopySafe.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="licenses\HO-COOH-FastCopy-LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+</Project>
